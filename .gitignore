@@ -39,3 +39,9 @@
 
 # debug information files
 *.dwo
+
+# Arduino Built Files
+build/
+
+# Vscode Cofiguration
+.vscode/
