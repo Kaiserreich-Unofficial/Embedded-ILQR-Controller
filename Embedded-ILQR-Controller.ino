@@ -6,7 +6,7 @@
 
 constexpr int NX = 6;
 constexpr int NU = 2;
-constexpr int T = 20;      // MPC预测步长
+constexpr int T = 35;      // MPC预测步长
 constexpr float dt = 0.1f; // 控制周期
 
 USVDynamics<NX, NU> dyn(dt);
@@ -17,7 +17,7 @@ ILQRController<NX, NU> mpc(T, dyn, cost, false);
 ILQRController<NX, NU>::State x;
 
 // 圆轨迹参数
-float r = 6.0f;
+float r = 10.0f;
 float omega = 0.1f;
 float u_ref = r * omega;
 

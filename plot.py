@@ -15,7 +15,7 @@ u_data, v_data, r_data = [], [], []
 
 # ---------------------- 正则解析 ----------------------
 line_re = re.compile(
-    r't=(?P<t>[0-9\.]+)\s+x=(?P<x>[0-9\.\-]+)\s+y=(?P<y>[0-9\.\-]+)\s+psi=(?P<psi>[0-9\.\-]+)\s+u=(?P<u>[0-9\.\-]+)\s+v=(?P<v>[0-9\.\-]+)\s+r=(?P<r>[0-9\.\-]+)'
+    r't=(?P<t>[0-9\.]+)\s+x=(?P<x>[0-9\.\-]+)\s+y=(?P<y>[0-9\.\-]+)\s+psi=(?P<psi>[0-9\.\-]+)\s+u=(?P<u>[0-9\.\-]+)\s+v=(?P<v>[0-9\.\-]+)\s+r=(?P<r>[0-9\.\-]+)\s+solve_time\(ms\)=(?P<solve>[0-9\.]+)'
 )
 
 # ---------------------- Matplotlib 图形设置 ----------------------
@@ -29,7 +29,9 @@ ax1.set_ylabel('y (m)')
 ax1.set_title('USV Trajectory')
 ax1.grid(True)
 ax1.axis('equal')
-
+# ---------------------- 在左图右上角显示 solve_time ----------------------
+solve_text = ax1.text(0.95, 0.95, '', transform=ax1.transAxes,
+                      ha='right', va='top', fontsize=12, bbox=dict(facecolor='white', alpha=0.7))
 # 右图：u v r
 line_u, = ax2.plot([], [], 'r-', label='u')
 line_v, = ax2.plot([], [], 'g-', label='v')
@@ -45,11 +47,12 @@ ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
 time.sleep(2)  # 等待串口稳定
 
 # ---------------------- 更新函数 ----------------------
+
+
 def update(frame):
     # 每次只读一行
     if ser.in_waiting:
         line = ser.readline().decode('utf-8', errors='ignore').strip()
-        # print(line)
         m = line_re.match(line)
         if m:
             t = float(m.group('t'))
@@ -59,6 +62,7 @@ def update(frame):
             u = float(m.group('u'))
             v = float(m.group('v'))
             r = float(m.group('r'))
+            solve_time = float(m.group('solve'))
 
             times.append(t)
             x_data.append(x)
@@ -80,8 +84,13 @@ def update(frame):
             ax2.relim()
             ax2.autoscale_view()
 
-    return line_traj, line_u, line_v, line_r
+            # 更新右上角 solve_time
+            solve_text.set_text(f'solve_time={solve_time:.1f} ms')
+
+    return line_traj, line_u, line_v, line_r, solve_text
+
 
 # ---------------------- 动画 ----------------------
-ani = FuncAnimation(fig, update, interval=100, cache_frame_data=True)  # 每10ms刷新
+ani = FuncAnimation(fig, update, interval=100,
+                    cache_frame_data=False)  # 每10ms刷新
 plt.show()
